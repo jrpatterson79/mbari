@@ -8,12 +8,12 @@
   dim = 3
   nx = 1
   ny = 1
-  nz = 10
+  nz = 50
   xmin = 0
-  xmax = 10
+  xmax = 2
   ymin = 0
-  ymax = 10
-  zmin = -100
+  ymax = 2
+  zmin = -50
   zmax = 0
 []
 
@@ -171,7 +171,7 @@
   [p100]
     type = PointValue
     outputs = csv
-    point = '0 0 -100'
+    point = '0 0 -25'
     variable = porepressure
   []
 []
@@ -189,7 +189,7 @@
   solve_type = Newton
   start_time = -3600 # so postprocessors get recorded correctly at t=0
   dt = 3600
-  end_time = 360000
+  end_time = 10800
   nl_abs_tol = 5E-7
   nl_rel_tol = 1E-10
 []
@@ -197,5 +197,5 @@
 [Outputs]
   exodus = true
   csv = true
-  file_base = atm_tide
+  file_base = mbari_out
 []

@@ -20,7 +20,7 @@ water_depth = tidal_data.water_level + buoy_depth;
 water_press = water_depth * rho_water * g;
 
 % Resample data for FFT
-dt = 60;
+dt = 3600;
 tidal_time = (datenum(tidal_data.time) - datenum(tidal_data.time(1))) * 86400;
 tidal_time_resamp = [datenum(tidal_time(1)) : dt : tidal_time(end)]';
 water_press_resamp = interp1(tidal_time, water_press, tidal_time_resamp);
@@ -37,9 +37,9 @@ tot_press_fft = tot_press_fft + mean_press;
 
 figure
 clf
-plot(tidal_time_resamp, tot_press, 'b.')
-hold on
-plot(tidal_time_resamp, tot_press_fft, 'r.');
+% plot(tidal_time_resamp, tot_press, 'b-')
+% hold on
+plot(tidal_time_resamp, tot_press_fft, 'r-');
 
 % figure
 % clf
