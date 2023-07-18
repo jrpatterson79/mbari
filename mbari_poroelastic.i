@@ -1,8 +1,3 @@
-# A 10m x 10m "column" of height 100m is subjected to cyclic pressure at its top
-# Assumptions:
-# the boundaries are impermeable, except the top boundary
-# only vertical displacement is allowed
-# the atmospheric pressure sets the total stress at the top of the model
 [Mesh]
   type = GeneratedMesh
   dim = 3
@@ -176,7 +171,6 @@
   []
 []
 
-
 [Preconditioning]
   [andy]
     type = SMP
@@ -186,6 +180,7 @@
 
 [Executioner]
   type = Transient
+  line_search = none
   solve_type = Newton
   start_time = -3600 # so postprocessors get recorded correctly at t=0
   dt = 3600
