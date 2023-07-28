@@ -3,12 +3,12 @@
   dim = 3
   nx = 1
   ny = 1
-  nz = 50
-  xmin = 0
-  xmax = 2
-  ymin = 0
-  ymax = 2
-  zmin = -50
+  nz = 200
+  xmin = 2000
+  xmax = 4000
+  ymin = 2000
+  ymax = 4000
+  zmin = -50000
   zmax = 0
 []
 
@@ -22,36 +22,38 @@
 
 [Variables]
   [disp_x]
+    scaling = 1e-10
   []
   [disp_y]
+    scaling = 1e-10
   []
   [disp_z]
+    scaling = 1e-10
   []
-  [porepressure]
-    scaling = 1E11
+  [pp]
   []
 []
 
 [ICs]
-  [porepressure]
+  [pp_init]
     type = FunctionIC
-    variable = porepressure
-    function = '-10000*z'  # approximately correct
+    variable = pp
+    function = '-9.81*998.23*z'  # approximately correct
   []
 []
 
 [Functions]
   [ini_stress_zz]
     type = ParsedFunction
-    expression = '(25000 - 0.6*10000)*z' # remember this is effective stress
+    expression = '(25000 - (0.6*9.81*998.23))*z' # remember this is effective stress
   []
   [cyclic_porepressure]
     type = ParsedFunction
-    expression = 'if(t>0,5000 * sin(2 * pi * t / 3600.0 / 24.0),0)'
+    expression = 'if(t>0,5 * sin(2 * pi * t / 3600.0 / 24.0),0)'
   []
   [neg_cyclic_porepressure]
     type = ParsedFunction
-    expression = '-if(t>0,5000 * sin(2 * pi * t / 3600.0 / 24.0),0)'
+    expression = '-if(t>0,5 * sin(2 * pi * t / 3600.0 / 24.0),0)'
   []
 []
 
@@ -82,7 +84,7 @@
   []
   [pp]
     type = FunctionDirichletBC
-    variable = porepressure
+    variable = pp
     function = cyclic_porepressure
     boundary = front
   []
@@ -100,22 +102,22 @@
     thermal_expansion = 0.0
     bulk_modulus = 2E9
     viscosity = 1E-3
-    density0 = 1000.0
+    density0 = 998.23
   []
 []
 
 [PorousFlowBasicTHM]
   coupling_type = HydroMechanical
   displacements = 'disp_x disp_y disp_z'
-  porepressure = porepressure
-  gravity = '0 0 -10'
+  porepressure = pp
+  gravity = '0 0 -9.81'
   fp = the_simple_fluid
 []
 
 [Materials]
   [elasticity_tensor]
     type = ComputeIsotropicElasticityTensor
-    bulk_modulus = 10.0E9 # drained bulk modulus
+    bulk_modulus = 10E9 # drained bulk modulus
     poissons_ratio = 0.25
   []
   [strain]
@@ -146,7 +148,7 @@
   [density]
     type = GenericConstantMaterial
     prop_names = density
-    prop_values = 2500.0
+    prop_values = 2500
   []
 []
 
@@ -154,23 +156,34 @@
   [p0]
     type = PointValue
     outputs = csv
-    point = '0 0 0'
-    variable = porepressure
+    point = '3000 3000 0'
+    variable = pp
   []
   [uz0]
     type = PointValue
     outputs = csv
-    point = '0 0 0'
+    point = '3000 3000 0'
     variable = disp_z
   []
   [p100]
     type = PointValue
     outputs = csv
-    point = '0 0 -25'
-    variable = porepressure
+    point = '3000 3000 -100'
+    variable = pp
   []
 []
 
+[VectorPostprocessors]
+  [depth_pp]
+    type = LineValueSampler
+    variable = pp
+    start_point = '3000 3000 0'
+    end_point = '3000 3000 -100'
+    num_points = 200
+    sort_by = z
+  []
+[]
+ 
 [Preconditioning]
   [andy]
     type = SMP
@@ -184,13 +197,13 @@
   solve_type = Newton
   start_time = -3600 # so postprocessors get recorded correctly at t=0
   dt = 3600
-  end_time = 10800
-  nl_abs_tol = 5E-7
+  end_time = 345600
+  nl_abs_tol = 1e-9
   nl_rel_tol = 1E-10
 []
 
 [Outputs]
   exodus = true
   csv = true
-  file_base = mbari_out
+  file_base = './out_files/mbari'
 []
