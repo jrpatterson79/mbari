@@ -1,15 +1,21 @@
+start_time = -3600
+end_time = 324000
+dt = 3600
+mean_press = 3.7316e5
+
 [Mesh]
   type = GeneratedMesh
   dim = 3
   nx = 1
   ny = 1
-  nz = 200
+  nz = 100
   xmin = 2000
   xmax = 4000
   ymin = 2000
   ymax = 4000
   zmin = -50000
   zmax = 0
+  bias_z = 0.95
 []
 
 [GlobalParams]
@@ -38,22 +44,26 @@
   [pp_init]
     type = FunctionIC
     variable = pp
-    function = '-9.81*998.23*z'  # approximately correct
+    function = '-9.81*1026*z'  # approximately correct
   []
 []
 
 [Functions]
   [ini_stress_zz]
     type = ParsedFunction
-    expression = '(25000 - (0.6*9.81*998.23))*z' # remember this is effective stress
+    expression = '(24525 - (0.6*9.81*1026))*z' # remember this is effective stress
   []
   [cyclic_porepressure]
     type = ParsedFunction
-    expression = 'if(t>0,5 * sin(2 * pi * t / 3600.0 / 24.0),0)'
+    expression = 'if(t>0,((f1*cos(((2*pi)/P1)*t)-f2*sin(((2*pi)/P1)*t))+(f3*cos(((2*pi)/P2)*t)-f4*sin(((2*pi)/P2)*t)))+mean_press,mean_press)'
+    symbol_names = 'P1 P2 f1 f2 f3 f4 mean_press'
+    symbol_values = '44739.2 91048.6 3.6010e3 -462.1223 -1.3816e3 -3.2686e3 ${mean_press}'
   []
   [neg_cyclic_porepressure]
     type = ParsedFunction
-    expression = '-if(t>0,5 * sin(2 * pi * t / 3600.0 / 24.0),0)'
+    expression = '-if(t>0,((f1*cos(((2*pi)/P1)*t)-f2*sin(((2*pi)/P1)*t))+(f3*cos(((2*pi)/P2)*t)-f4*sin(((2*pi)/P2)*t)))+mean_press,mean_press)'
+    symbol_names = 'P1 P2 f1 f2 f3 f4 mean_press'
+    symbol_values = '44739.2 91048.6 3.6333e3 -465.7120 -1.3937e3 -3.2978e3 ${mean_press}'
   []
 []
 
@@ -101,8 +111,8 @@
     type = SimpleFluidProperties
     thermal_expansion = 0.0
     bulk_modulus = 2E9
-    viscosity = 1E-3
-    density0 = 998.23
+    viscosity = 1.26e-3
+    density0 = 1026
   []
 []
 
@@ -143,7 +153,7 @@
   []
   [permeability]
     type = PorousFlowPermeabilityConst
-    permeability = '1E-12 0 0   0 1E-12 0   0 0 1E-14'
+    permeability = '3.75e-15 0 0   0 3.75e-15 0   0 0 3.75e-15'
   []
   [density]
     type = GenericConstantMaterial
@@ -195,10 +205,10 @@
   type = Transient
   line_search = none
   solve_type = Newton
-  start_time = -3600 # so postprocessors get recorded correctly at t=0
-  dt = 3600
-  end_time = 345600
-  nl_abs_tol = 1e-9
+  start_time = ${start_time} # so postprocessors get recorded correctly at t=0
+  dt = ${dt}
+  end_time = ${end_time}
+  nl_abs_tol = 1e-8
   nl_rel_tol = 1E-10
 []
 
