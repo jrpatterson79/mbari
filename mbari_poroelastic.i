@@ -44,11 +44,17 @@ mean_press = 3.7316e5
   [pp_init]
     type = FunctionIC
     variable = pp
-    function = '-9.81*1026*z'  # approximately correct
+    function = hydrostatic  # approximately correct
   []
 []
 
 [Functions]
+  [hydrostatic]
+    type = ParsedFunction
+    expression = 'mean_press + (-9.81*1026*z)'
+    symbol_names = 'mean_press'
+    symbol_values = '${mean_press}'
+  []
   [ini_stress_zz]
     type = ParsedFunction
     expression = '(24525 - (0.6*9.81*1026))*z' # remember this is effective stress
@@ -153,7 +159,8 @@ mean_press = 3.7316e5
   []
   [permeability]
     type = PorousFlowPermeabilityConst
-    permeability = '3.75e-15 0 0   0 3.75e-15 0   0 0 3.75e-15'
+    permeability = '1e-12 0 0   0 1e-12 0   0 0 1e-12'
+    # permeability = '3.75e-15 0 0   0 3.75e-15 0   0 0 3.75e-15'
   []
   [density]
     type = GenericConstantMaterial
