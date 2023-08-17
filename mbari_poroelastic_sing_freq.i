@@ -1,5 +1,5 @@
 end_time = 410400
-dt = 10
+dt = 60
 rho_seds = 1800
 mean_press = 3.7316e5
 
@@ -8,7 +8,7 @@ mean_press = 3.7316e5
   dim = 3
   nx = 1
   ny = 1
-  nz = 50
+  nz = 2000
   xmin = 2000
   xmax = 4000
   ymin = 2000
@@ -23,7 +23,7 @@ mean_press = 3.7316e5
   PorousFlowDictator = dictator
   block = 0
   biot_coefficient = 1
-  multiply_by_density = false
+  multiply_by_density = true
 []
 
 [Variables]
@@ -64,15 +64,15 @@ mean_press = 3.7316e5
   []
   [cyclic_porepressure]
     type = ParsedFunction
-    expression = 'if(t>0,((f1*cos(((2*pi)/P1)*t)-f2*sin(((2*pi)/P1)*t))+(f3*cos(((2*pi)/P2)*t)-f4*sin(((2*pi)/P2)*t)))+mean_press,mean_press)'
-    symbol_names = 'P1 P2 f1 f2 f3 f4 mean_press'
-    symbol_values = '44739.2 91048.6 3.6010e3 -462.1223 -1.3816e3 -3.2686e3 ${mean_press}'
+    expression = 'if(t>0,((f3*cos(((2*pi)/P2)*t)-f4*sin(((2*pi)/P2)*t)))+mean_press,mean_press)'
+    symbol_names = 'P2 f3 f4 mean_press'
+    symbol_values = '91048.6 -1.3816e3 -3.2686e3 ${mean_press}'
   []
   [neg_cyclic_porepressure]
     type = ParsedFunction
-    expression = '-if(t>0,((f1*cos(((2*pi)/P1)*t)-f2*sin(((2*pi)/P1)*t))+(f3*cos(((2*pi)/P2)*t)-f4*sin(((2*pi)/P2)*t)))+mean_press,mean_press)'
-    symbol_names = 'P1 P2 f1 f2 f3 f4 mean_press'
-    symbol_values = '44739.2 91048.6 3.6333e3 -465.7120 -1.3937e3 -3.2978e3 ${mean_press}'
+    expression = '-if(t>0,((f3*cos(((2*pi)/P2)*t)-f4*sin(((2*pi)/P2)*t)))+mean_press,mean_press)'
+    symbol_names = 'P2 f3 f4 mean_press'
+    symbol_values = '91048.6 -1.3937e3 -3.2978e3 ${mean_press}'
   []
 []
 
@@ -191,7 +191,7 @@ mean_press = 3.7316e5
   [p100]
     type = PointValue
     outputs = csv
-    point = '2000 2000 -400'
+    point = '2000 2000 -100'
     variable = pp
   []
 []
@@ -220,18 +220,12 @@ mean_press = 3.7316e5
   line_search = none
   solve_type = Newton
   [TimeSteppers]
-    active = adaptive
+    active = constant
     [constant]
       type = ConstantDT
       dt = ${dt}
     []
-    [adaptive]
-      type = IterationAdaptiveDT
-      dt = ${dt}
-      growth_factor = 1.05
-    []
   []
-  dtmax = 3600
   start_time = -${dt} # so postprocessors get recorded correctly at t=0
   end_time = ${end_time}
   nl_abs_tol = 1e-8
