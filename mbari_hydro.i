@@ -1,6 +1,5 @@
 end_time = 410400
 dt = 3600
-rho_seds = 1800
 mean_press = 3.7316e5
 
 [Mesh]
@@ -8,7 +7,7 @@ mean_press = 3.7316e5
   dim = 3
   nx = 1
   ny = 1
-  nz = 100
+  nz = 200
   xmin = 0
   xmax = 2000
   ymin = 0
@@ -19,7 +18,6 @@ mean_press = 3.7316e5
 []
 
 [GlobalParams]
-  displacements = 'disp_x disp_y disp_z'
   PorousFlowDictator = dictator
   block = 0
   biot_coefficient = 1
@@ -27,15 +25,6 @@ mean_press = 3.7316e5
 []
 
 [Variables]
-  [disp_x]
-    scaling = 1e-10
-  []
-  [disp_y]
-    scaling = 1e-10
-  []
-  [disp_z]
-    scaling = 1e-10
-  []
   [pp]
   []
 []
@@ -55,25 +44,18 @@ mean_press = 3.7316e5
     symbol_names = 'mean_press'
     symbol_values = '${mean_press}'
   []
-  [ini_stress_zz]
-    # remember this is effective stress
-    type = ParsedFunction
-    expression = '((rho_s * g) - (1*9.81*1026))*z' 
-    symbol_names = 'rho_s g'
-    symbol_values = '${rho_seds} 9.81'
-  []
   [cyclic_porepressure]
     type = ParsedFunction
     expression = 'if(t>0,((f1*cos(((2*pi)/P1)*t)-f2*sin(((2*pi)/P1)*t))+(f3*cos(((2*pi)/P2)*t)-f4*sin(((2*pi)/P2)*t)))+mean_press,mean_press)'
     symbol_names = 'P1 P2 f1 f2 f3 f4 mean_press'
     symbol_values = '44739.2 91048.6 3.6010e3 -462.1223 -1.3816e3 -3.2686e3 ${mean_press}'
   []
-  [neg_cyclic_porepressure]
-    type = ParsedFunction
-    expression = '-if(t>0,((f1*cos(((2*pi)/P1)*t)-f2*sin(((2*pi)/P1)*t))+(f3*cos(((2*pi)/P2)*t)-f4*sin(((2*pi)/P2)*t)))+mean_press,mean_press)'
-    symbol_names = 'P1 P2 f1 f2 f3 f4 mean_press'
-    symbol_values = '44739.2 91048.6 3.6333e3 -465.7120 -1.3937e3 -3.2978e3 ${mean_press}'
-  []
+#   [neg_cyclic_porepressure]
+#     type = ParsedFunction
+#     expression = '-if(t>0,((f1*cos(((2*pi)/P1)*t)-f2*sin(((2*pi)/P1)*t))+(f3*cos(((2*pi)/P2)*t)-f4*sin(((2*pi)/P2)*t)))+mean_press,mean_press)'
+#     symbol_names = 'P1 P2 f1 f2 f3 f4 mean_press'
+#     symbol_values = '44739.2 91048.6 3.6333e3 -465.7120 -1.3937e3 -3.2978e3 ${mean_press}'
+#   []
 []
 
 [BCs]
@@ -83,38 +65,12 @@ mean_press = 3.7316e5
   # ymax is called 'top'
   # xmin is called 'left'
   # xmax is called 'right'
-
   # Hydraulic Boundaries
   [pp]
   type = FunctionDirichletBC
   variable = pp
   function = cyclic_porepressure
   boundary = front
-  []
-  # Mechanical Boundaries
-  [no_x_disp]
-    type = DirichletBC
-    variable = disp_x
-    value = 0
-    boundary = 'bottom top' # because of 1-element meshing, this fixes u_x=0 everywhere
-  []
-  [no_y_disp]
-    type = DirichletBC
-    variable = disp_y
-    value = 0
-    boundary = 'bottom top' # because of 1-element meshing, this fixes u_y=0 everywhere
-  []
-  [no_z_disp_at_bottom]
-    type = DirichletBC
-    variable = disp_z
-    value = 0
-    boundary = back
-  []
-  [total_stress_at_top]
-    type = FunctionNeumannBC
-    variable = disp_z
-    function = neg_cyclic_porepressure
-    boundary = front
   []
 []
 
@@ -129,31 +85,13 @@ mean_press = 3.7316e5
 []
 
 [PorousFlowFullySaturated]
-  coupling_type = HydroMechanical
-  displacements = 'disp_x disp_y disp_z'
+  coupling_type = Hydro
   porepressure = pp
   gravity = '0 0 -9.81'
   fp = the_simple_fluid
 []
 
 [Materials]
-  [elasticity_tensor]
-    type = ComputeIsotropicElasticityTensor
-    shear_modulus = 6.5e8 # drained bulk modulus
-    bulk_modulus = 4.4e8
-  []
-  [strain]
-    type = ComputeSmallStrain
-    eigenstrain_names = ini_stress
-  []
-  [stress]
-    type = ComputeLinearElasticStress
-  []
-  [ini_stress]
-    type = ComputeEigenstrainFromInitialStress
-    initial_stress = '0 0 0  0 0 0  0 0 ini_stress_zz'
-    eigenstrain_name = ini_stress
-  []
   [porosity]
     type = PorousFlowPorosityConst # only the initial value of this is ever used
     porosity = 0.5
@@ -168,30 +106,19 @@ mean_press = 3.7316e5
     permeability = '1.8e-10 0 0   0 1.8e-10 0   0 0 1.8e-10'
     # permeability = '3.75e-15 0 0   0 3.75e-15 0   0 0 3.75e-15'
   []
-  [density]
-    type = GenericConstantMaterial
-    prop_names = density
-    prop_values = ${rho_seds}
-  []
 []
 
 [Postprocessors]
   [p0]
     type = PointValue
     outputs = csv
-    point = '2000 2000 0'
+    point = '0 0 0'
     variable = pp
-  []
-  [uz0]
-    type = PointValue
-    outputs = csv
-    point = '2000 2000 0'
-    variable = disp_z
   []
   [p100]
     type = PointValue
     outputs = csv
-    point = '2000 2000 -400'
+    point = '0 0 -400'
     variable = pp
   []
 []
@@ -235,6 +162,7 @@ mean_press = 3.7316e5
   start_time = -${dt} # so postprocessors get recorded correctly at t=0
   end_time = ${end_time}
   nl_abs_tol = 1e-8
+  nl_rel_tol = 1E-10
 []
 
 [Outputs]
