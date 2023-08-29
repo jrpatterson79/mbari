@@ -1,5 +1,5 @@
-end_time = 410400
-dt = 3600
+end_time = 864000
+dt = 1800
 rho_seds = 1800
 mean_press = 3.7316e5
 
@@ -8,21 +8,20 @@ mean_press = 3.7316e5
   dim = 3
   nx = 1
   ny = 1
-  nz = 100
+  nz = 20
   xmin = 0
-  xmax = 2000
+  xmax = 20
   ymin = 0
-  ymax = 2000
-  zmin = -20000
+  ymax = 20
+  zmin = -200
   zmax = 0
-  bias_z = 0.95
 []
 
 [GlobalParams]
   displacements = 'disp_x disp_y disp_z'
   PorousFlowDictator = dictator
   block = 0
-  biot_coefficient = 1
+  biot_coefficient = 0.9
   multiply_by_density = false
 []
 
@@ -51,16 +50,16 @@ mean_press = 3.7316e5
 [Functions]
   [hydrostatic]
     type = ParsedFunction
-    expression = 'mean_press + (-9.81*1026*z)'
-    symbol_names = 'mean_press'
-    symbol_values = '${mean_press}'
+    expression = 'mean_press + (-g*rho_f*z)'
+    symbol_names = 'mean_press g rho_f'
+    symbol_values = '${mean_press} 9.81 1026'
   []
   [ini_stress_zz]
     # remember this is effective stress
     type = ParsedFunction
-    expression = '((rho_s * g) - (1*9.81*1026))*z' 
-    symbol_names = 'rho_s g'
-    symbol_values = '${rho_seds} 9.81'
+    expression = '((rho_s * g) - (0.9*g*rho_f))*z'
+    symbol_names = 'rho_s g rho_f'
+    symbol_values = '${rho_seds} 9.81 1026'
   []
   [cyclic_porepressure]
     type = ParsedFunction
@@ -128,9 +127,10 @@ mean_press = 3.7316e5
   []
 []
 
-[PorousFlowFullySaturated]
+[PorousFlowBasicTHM]
   coupling_type = HydroMechanical
   displacements = 'disp_x disp_y disp_z'
+  use_displaced_mesh = false
   porepressure = pp
   gravity = '0 0 -9.81'
   fp = the_simple_fluid
@@ -160,7 +160,7 @@ mean_press = 3.7316e5
   []
   [biot_modulus]
     type = PorousFlowConstantBiotModulus
-    biot_coefficient = 1
+    biot_coefficient = 0.9
     fluid_bulk_modulus = 2E9
   []
   [permeability]
@@ -179,19 +179,25 @@ mean_press = 3.7316e5
   [p0]
     type = PointValue
     outputs = csv
-    point = '2000 2000 0'
+    point = '0 0 0'
+    variable = pp
+  []
+  [p1]
+    type = PointValue 
+    outputs = csv
+    point = '0 0 -50'
     variable = pp
   []
   [uz0]
     type = PointValue
     outputs = csv
-    point = '2000 2000 0'
+    point = '0 0 -100'
     variable = disp_z
   []
   [p100]
     type = PointValue
     outputs = csv
-    point = '2000 2000 -400'
+    point = '0 0 -100'
     variable = pp
   []
 []
@@ -220,7 +226,7 @@ mean_press = 3.7316e5
   line_search = none
   solve_type = Newton
   [TimeSteppers]
-    active = constant
+    active = adaptive
     [constant]
       type = ConstantDT
       dt = ${dt}

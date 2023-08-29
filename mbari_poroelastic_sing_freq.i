@@ -1,5 +1,5 @@
-end_time = 410400
-dt = 60
+end_time = 864000
+dt = 3600
 rho_seds = 1800
 mean_press = 3.7316e5
 
@@ -8,12 +8,12 @@ mean_press = 3.7316e5
   dim = 3
   nx = 1
   ny = 1
-  nz = 2000
-  xmin = 2000
-  xmax = 4000
-  ymin = 2000
-  ymax = 4000
-  zmin = -20000
+  nz = 200
+  xmin = 0
+  xmax = 20
+  ymin = 0
+  ymax = 20
+  zmin = -2000
   zmax = 0
   # bias_z = 0.95
 []
@@ -22,8 +22,8 @@ mean_press = 3.7316e5
   displacements = 'disp_x disp_y disp_z'
   PorousFlowDictator = dictator
   block = 0
-  biot_coefficient = 1
-  multiply_by_density = true
+  biot_coefficient = 0.9
+  multiply_by_density = false
 []
 
 [Variables]
@@ -58,21 +58,21 @@ mean_press = 3.7316e5
   [ini_stress_zz]
     # remember this is effective stress
     type = ParsedFunction
-    expression = '((rho_s * g) - (1*9.81*1026))*z' 
-    symbol_names = 'rho_s g'
-    symbol_values = '${rho_seds} 9.81'
+    expression = '((rho_s * g) - (0.9*g*rho_f))*z' 
+    symbol_names = 'rho_s g rho_f'
+    symbol_values = '${rho_seds} 9.81 1026'
   []
   [cyclic_porepressure]
     type = ParsedFunction
-    expression = 'if(t>0,((f3*cos(((2*pi)/P2)*t)-f4*sin(((2*pi)/P2)*t)))+mean_press,mean_press)'
-    symbol_names = 'P2 f3 f4 mean_press'
-    symbol_values = '91048.6 -1.3816e3 -3.2686e3 ${mean_press}'
+    expression = 'if(t>0,(f1*cos(((2*pi)/P1)*t)-f2*sin(((2*pi)/P1)*t))+mean_press,mean_press)'
+    symbol_names = 'P1 f1 f2 mean_press'
+    symbol_values = '44739.2 3.6010e3 -462.1223 ${mean_press}'
   []
   [neg_cyclic_porepressure]
     type = ParsedFunction
-    expression = '-if(t>0,((f3*cos(((2*pi)/P2)*t)-f4*sin(((2*pi)/P2)*t)))+mean_press,mean_press)'
-    symbol_names = 'P2 f3 f4 mean_press'
-    symbol_values = '91048.6 -1.3937e3 -3.2978e3 ${mean_press}'
+    expression = '-if(t>0,(f1*cos(((2*pi)/P1)*t)-f2*sin(((2*pi)/P1)*t))+mean_press,mean_press)'
+    symbol_names = 'P1 f1 f2 mean_press'
+    symbol_values = '44739.2 3.6010e3 -462.1223 ${mean_press}'
   []
 []
 
@@ -160,7 +160,7 @@ mean_press = 3.7316e5
   []
   [biot_modulus]
     type = PorousFlowConstantBiotModulus
-    biot_coefficient = 1
+    biot_coefficient = 0.9
     fluid_bulk_modulus = 2E9
   []
   [permeability]
@@ -179,19 +179,19 @@ mean_press = 3.7316e5
   [p0]
     type = PointValue
     outputs = csv
-    point = '2000 2000 0'
+    point = '0 0 0'
     variable = pp
   []
   [uz0]
     type = PointValue
     outputs = csv
-    point = '2000 2000 0'
+    point = '0 0 0'
     variable = disp_z
   []
   [p100]
     type = PointValue
     outputs = csv
-    point = '2000 2000 -100'
+    point = '0 0 -100'
     variable = pp
   []
 []
@@ -200,8 +200,8 @@ mean_press = 3.7316e5
   [depth_pp]
     type = LineValueSampler
     variable = pp
-    start_point = '2000 2000 0'
-    end_point = '2000 2000 -300'
+    start_point = '0 0 0'
+    end_point = '0 0 -300'
     num_points = 300
     sort_by = z
     execute_on = 'INITIAL TIMESTEP_END'

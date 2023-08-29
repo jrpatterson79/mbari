@@ -7,12 +7,12 @@ mean_press = 3.7316e5
   dim = 3
   nx = 1
   ny = 1
-  nz = 200
+  nz = 500
   xmin = 0
-  xmax = 2000
+  xmax = 10
   ymin = 0
-  ymax = 2000
-  zmin = -20000
+  ymax = 10
+  zmin = -500
   zmax = 0
   bias_z = 0.95
 []
@@ -118,7 +118,7 @@ mean_press = 3.7316e5
   [p100]
     type = PointValue
     outputs = csv
-    point = '0 0 -400'
+    point = '0 0 -100'
     variable = pp
   []
 []
@@ -168,5 +168,5 @@ mean_press = 3.7316e5
 [Outputs]
   exodus = true
   csv = true
-  file_base = './out_files/mbari'
+  file_base = './out_files/mbari_hydro'
 []
