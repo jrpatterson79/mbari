@@ -1,78 +1,69 @@
+# A 10m x 10m "column" of height 100m is subjected to cyclic pressure at its top
+# Assumptions:
+# the boundaries are impermeable, except the top boundary
+# only vertical displacement is allowed
+# the atmospheric pressure sets the total stress at the top of the model
+dt = 1800
 end_time = 864000
-dt = 3600
-rho_seds = 1800
-mean_press = 3.7316e5
 
 [Mesh]
   type = GeneratedMesh
   dim = 3
   nx = 1
   ny = 1
-  nz = 200
+  nz = 300
   xmin = 0
-  xmax = 20
+  xmax = 30
   ymin = 0
-  ymax = 20
-  zmin = -2000
+  ymax = 30
+  zmin = -300
   zmax = 0
-  # bias_z = 0.95
 []
 
 [GlobalParams]
   displacements = 'disp_x disp_y disp_z'
   PorousFlowDictator = dictator
   block = 0
-  biot_coefficient = 0.9
+  biot_coefficient = 0.6
   multiply_by_density = false
 []
 
 [Variables]
   [disp_x]
-    scaling = 1e-10
   []
   [disp_y]
-    scaling = 1e-10
   []
   [disp_z]
-    scaling = 1e-10
   []
   [pp]
+    scaling = 1E10
   []
 []
 
 [ICs]
-  [pp_init]
+  [porepressure]
     type = FunctionIC
     variable = pp
-    function = hydrostatic
+    function = '-10000*z'#hydrostatic  # approximately correct
   []
 []
 
 [Functions]
-  [hydrostatic]
-    type = ParsedFunction
-    expression = 'mean_press + (-9.81*1026*z)'
-    symbol_names = 'mean_press'
-    symbol_values = '${mean_press}'
-  []
   [ini_stress_zz]
-    # remember this is effective stress
     type = ParsedFunction
-    expression = '((rho_s * g) - (0.9*g*rho_f))*z' 
-    symbol_names = 'rho_s g rho_f'
-    symbol_values = '${rho_seds} 9.81 1026'
+    expression = '(25000 - 0.6*10000)*z' # remember this is effective stress
   []
   [cyclic_porepressure]
     type = ParsedFunction
-    expression = 'if(t>0,(f1*cos(((2*pi)/P1)*t)-f2*sin(((2*pi)/P1)*t))+mean_press,mean_press)'
-    symbol_names = 'P1 f1 f2 mean_press'
-    symbol_values = '44739.2 3.6010e3 -462.1223 ${mean_press}'
+    expression = 'if(t>0,real*cos(((2*pi)/P)*t)-imag*sin(((2*pi)/P)*t),0)'
+    symbol_names = 'real imag P'
+    symbol_values = '5e3 2.5453e-12 86400'
   []
   [neg_cyclic_porepressure]
     type = ParsedFunction
-    expression = '-if(t>0,(f1*cos(((2*pi)/P1)*t)-f2*sin(((2*pi)/P1)*t))+mean_press,mean_press)'
-    symbol_names = 'P1 f1 f2 mean_press'
-    symbol_values = '44739.2 3.6010e3 -462.1223 ${mean_press}'
+    expression = '-if(t>0,real*cos(((2*pi)/P)*t)-imag*sin(((2*pi)/P)*t),0)'
+    symbol_names = 'real imag P'
+    symbol_values = '5e3 2.5453e-12 86400'  
   []
 []
 
@@ -83,15 +74,6 @@ mean_press = 3.7316e5
   # ymax is called 'top'
   # xmin is called 'left'
   # xmax is called 'right'
-
-  # Hydraulic Boundaries
-  [pp]
-  type = FunctionDirichletBC
-  variable = pp
-  function = cyclic_porepressure
-  boundary = front
-  []
-  # Mechanical Boundaries
   [no_x_disp]
     type = DirichletBC
     variable = disp_x
@@ -110,6 +92,12 @@ mean_press = 3.7316e5
     value = 0
     boundary = back
   []
+  [pp]
+    type = FunctionDirichletBC
+    variable = pp
+    function = cyclic_porepressure
+    boundary = front
+  []
   [total_stress_at_top]
     type = FunctionNeumannBC
     variable = disp_z
@@ -123,8 +111,8 @@ mean_press = 3.7316e5
     type = SimpleFluidProperties
     thermal_expansion = 0.0
     bulk_modulus = 2E9
-    viscosity = 1.26e-3
-    density0 = 1026
+    viscosity = 1E-3
+    density0 = 1000.0
   []
 []
 
@@ -132,15 +120,15 @@ mean_press = 3.7316e5
   coupling_type = HydroMechanical
   displacements = 'disp_x disp_y disp_z'
   porepressure = pp
-  gravity = '0 0 -9.81'
+  gravity = '0 0 -10'
   fp = the_simple_fluid
 []
 
 [Materials]
   [elasticity_tensor]
     type = ComputeIsotropicElasticityTensor
-    shear_modulus = 6.5e8 # drained bulk modulus
-    bulk_modulus = 4.4e8
+    bulk_modulus = 10.0E9 # drained bulk modulus
+    poissons_ratio = 0.25
   []
   [strain]
     type = ComputeSmallStrain
@@ -156,22 +144,21 @@ mean_press = 3.7316e5
   []
   [porosity]
     type = PorousFlowPorosityConst # only the initial value of this is ever used
-    porosity = 0.5
+    porosity = 0.1
   []
   [biot_modulus]
     type = PorousFlowConstantBiotModulus
-    biot_coefficient = 0.9
+    solid_bulk_compliance = 1E-10
     fluid_bulk_modulus = 2E9
   []
   [permeability]
     type = PorousFlowPermeabilityConst
-    permeability = '1.8e-10 0 0   0 1.8e-10 0   0 0 1.8e-10'
-    # permeability = '3.75e-15 0 0   0 3.75e-15 0   0 0 3.75e-15'
+    permeability = '1E-12 0 0   0 1E-12 0   0 0 1E-14'
   []
   [density]
     type = GenericConstantMaterial
     prop_names = density
-    prop_values = ${rho_seds}
+    prop_values = 2500.0
   []
 []
 
@@ -179,7 +166,7 @@ mean_press = 3.7316e5
   [p0]
     type = PointValue
     outputs = csv
-    point = '0 0 0'
+    point = '0 0 -50'
     variable = pp
   []
   [uz0]
@@ -207,17 +194,18 @@ mean_press = 3.7316e5
     execute_on = 'INITIAL TIMESTEP_END'
   []
 []
- 
+
 [Preconditioning]
   [andy]
     type = SMP
     full = true
+    petsc_options_iname = '-pc_type -pc_factor_mat_solver_package'
+    petsc_options_value = 'lu        mumps'  
   []
 []
 
 [Executioner]
   type = Transient
-  line_search = none
   solve_type = Newton
   [TimeSteppers]
     active = constant
@@ -225,15 +213,20 @@ mean_press = 3.7316e5
       type = ConstantDT
       dt = ${dt}
     []
+    [adaptive]
+      type = IterationAdaptiveDT
+      dt = ${dt}
+      growth_factor = 1.05
+    []
   []
+  dtmax = 3600
   start_time = -${dt} # so postprocessors get recorded correctly at t=0
   end_time = ${end_time}
-  nl_abs_tol = 1e-8
-  nl_rel_tol = 1E-10
+  # nl_abs_tol = 5E-7
+  # nl_rel_tol = 1E-10
 []
 
 [Outputs]
-  exodus = true
   csv = true
   file_base = './out_files/mbari'
 []

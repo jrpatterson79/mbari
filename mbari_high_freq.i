@@ -1,4 +1,4 @@
-end_time = 324000
+end_time = 864000
 dt = 1800
 rho_seds = 1800
 mean_press = 3.7316e5
@@ -8,12 +8,12 @@ mean_press = 3.7316e5
   dim = 3
   nx = 1
   ny = 1
-  nz = 17
+  nz = 250
   xmin = 0
-  xmax = 1
+  xmax = 50
   ymin = 0
-  ymax = 1
-  zmin = -175
+  ymax = 50
+  zmin = -500
   zmax = 0
   # bias_z = 0.95
 []
@@ -51,28 +51,28 @@ mean_press = 3.7316e5
 [Functions]
   [hydrostatic]
     type = ParsedFunction
-    expression = 'pp + (-g*rho_f*z)'
-    symbol_names = 'pp g rho_f'
-    symbol_values = '${mean_press} 9.81 1026'
+    expression = 'pp + (-9.81*1026*z)'
+    symbol_names = 'pp'
+    symbol_values = '${mean_press}'
   []
   [ini_stress_zz]
     # remember this is effective stress
     type = ParsedFunction
-    expression = '(rho_s * g - rho_f*g*0.6) * z' 
+    expression = '(rho_s*g - rho_f*g*0.6) * z' 
     symbol_names = 'rho_s g rho_f pp'
     symbol_values = '${rho_seds} 9.81 1026 ${mean_press}'
-  []  
+  []
   [cyclic_porepressure]
     type = ParsedFunction
-    expression = 'if(t>0,((f1*cos(((2*pi)/P1)*t)-f2*sin(((2*pi)/P1)*t))+(f3*cos(((2*pi)/P2)*t)-f4*sin(((2*pi)/P2)*t)))+pp,pp)'
-    symbol_names = 'P1 P2 f1 f2 f3 f4 pp'
-    symbol_values = '44739.2 91048.6 3.6010e3 -462.1223 -1.3816e3 -3.2686e3 ${mean_press}'
+    expression = 'if(t>0,(f1*cos(((2*pi)/P1)*t)-f2*sin(((2*pi)/P1)*t))+pp,pp)'
+    symbol_names = 'P1 f1 f2 pp'
+    symbol_values = '44739.2 3.6010e3 -462.1223 ${mean_press}'
   []
   [neg_cyclic_porepressure]
     type = ParsedFunction
-    expression = '-if(t>0,((f1*cos(((2*pi)/P1)*t)-f2*sin(((2*pi)/P1)*t))+(f3*cos(((2*pi)/P2)*t)-f4*sin(((2*pi)/P2)*t)))+pp,pp)'
-    symbol_names = 'P1 P2 f1 f2 f3 f4 pp'
-    symbol_values = '44739.2 91048.6 3.6333e3 -465.7120 -1.3937e3 -3.2978e3 ${mean_press}'
+    expression = '-if(t>0,(f1*cos(((2*pi)/P1)*t)-f2*sin(((2*pi)/P1)*t))+pp,pp)'
+    symbol_names = 'P1 f1 f2 pp'
+    symbol_values = '44739.2 3.6010e3 -462.1223 ${mean_press}'
   []
 []
 
@@ -131,10 +131,10 @@ mean_press = 3.7316e5
 [PorousFlowBasicTHM]
   coupling_type = HydroMechanical
   displacements = 'disp_x disp_y disp_z'
-  use_displaced_mesh = false
   porepressure = pp
   gravity = '0 0 -9.81'
   fp = the_simple_fluid
+  use_displaced_mesh = false
 []
 
 [Materials]
@@ -183,16 +183,10 @@ mean_press = 3.7316e5
     point = '0 0 0'
     variable = pp
   []
-  [p1]
-    type = PointValue 
-    outputs = csv
-    point = '0 0 -50'
-    variable = pp
-  []
   [uz0]
     type = PointValue
     outputs = csv
-    point = '0 0 -100'
+    point = '0 0 0'
     variable = disp_z
   []
   [p100]
@@ -208,7 +202,7 @@ mean_press = 3.7316e5
     type = LineValueSampler
     variable = pp
     start_point = '0 0 0'
-    end_point = '0 0 -100'
+    end_point = '0 0 -300'
     num_points = 300
     sort_by = z
     execute_on = 'INITIAL TIMESTEP_END'
@@ -224,10 +218,10 @@ mean_press = 3.7316e5
 
 [Executioner]
   type = Transient
-  line_search = none
+  # line_search = none
   solve_type = Newton
   [TimeSteppers]
-    active = adaptive
+    active = constant
     [constant]
       type = ConstantDT
       dt = ${dt}
@@ -238,14 +232,14 @@ mean_press = 3.7316e5
       growth_factor = 1.05
     []
   []
-  dtmax = 3600
   start_time = -${dt} # so postprocessors get recorded correctly at t=0
   end_time = ${end_time}
   nl_abs_tol = 1e-8
+  nl_rel_tol = 1E-10
 []
 
 [Outputs]
-  exodus = false
+  exodus = true
   csv = true
   file_base = './out_files/mbari'
 []
