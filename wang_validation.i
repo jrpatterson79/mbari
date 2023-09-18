@@ -11,12 +11,12 @@ end_time = 864000
   dim = 3
   nx = 1
   ny = 1
-  nz = 300
+  nz = 100
   xmin = 0
-  xmax = 30
+  xmax = 10
   ymin = 0
-  ymax = 30
-  zmin = -300
+  ymax = 10
+  zmin = -1000
   zmax = 0
 []
 

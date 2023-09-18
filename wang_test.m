@@ -2,7 +2,7 @@ clear; close all; clc
 P = 31536000;
 c = 1;
 amp = 5;
-gamma = 0.791;
+gamma = 0.3;
 omega = (2*pi) / P;
 arg = (2*c) / omega;
 z = [0:100:50000]';

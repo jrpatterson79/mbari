@@ -1,25 +1,28 @@
+# Signal Parameters
+period = 44739.2
+amplitude = 3.6305e3
+mean_press = 0#3.7316e5
+
+# Time Parameters
 end_time = 864000
-dt = 1800
+dt = 3600
+
+# Rock Parameters
 rho_seds = 1800
-mean_press = 3.7316e5
 
 [Mesh]
   type = GeneratedMesh
-  dim = 3
+  dim = 2
   nx = 1
-  ny = 1
-  nz = 250
+  ny = 500
   xmin = 0
   xmax = 50
-  ymin = 0
-  ymax = 50
-  zmin = -500
-  zmax = 0
-  # bias_z = 0.95
+  ymin = -5000
+  ymax = 0
 []
 
 [GlobalParams]
-  displacements = 'disp_x disp_y disp_z'
+  displacements = 'disp_x disp_y'
   PorousFlowDictator = dictator
   block = 0
   biot_coefficient = 0.6
@@ -31,9 +34,6 @@ mean_press = 3.7316e5
     scaling = 1e-10
   []
   [disp_y]
-    scaling = 1e-10
-  []
-  [disp_z]
     scaling = 1e-10
   []
   [pp]
@@ -51,28 +51,40 @@ mean_press = 3.7316e5
 [Functions]
   [hydrostatic]
     type = ParsedFunction
-    expression = 'pp + (-9.81*1026*z)'
+    expression = 'pp + (-9.81*1026*y)'
     symbol_names = 'pp'
     symbol_values = '${mean_press}'
   []
-  [ini_stress_zz]
+  [ini_stress_yy]
     # remember this is effective stress
     type = ParsedFunction
-    expression = '(rho_s*g - rho_f*g*0.6) * z' 
-    symbol_names = 'rho_s g rho_f pp'
-    symbol_values = '${rho_seds} 9.81 1026 ${mean_press}'
+    expression = '(rho_s*g - rho_f*g*0.6) * y'
+    symbol_names = 'rho_s g rho_f'
+    symbol_values = '${rho_seds} 9.81 1026'
   []
+  # [cyclic_porepressure]
+  #   type = ParsedFunction
+  #   expression = 'if(t>0,(f1*cos(((2*pi)/P1)*t)-f2*sin(((2*pi)/P1)*t))+pp,pp)'
+  #   symbol_names = 'P1 f1 f2 pp'
+  #   symbol_values = '44739.2 3.6010e3 -462.1223 ${mean_press}'
+  # []
+  # [neg_cyclic_porepressure]
+  #   type = ParsedFunction
+  #   expression = '-if(t>0,(f1*cos(((2*pi)/P1)*t)-f2*sin(((2*pi)/P1)*t))+pp,pp)'
+  #   symbol_names = 'P1 f1 f2 pp'
+  #   symbol_values = '44739.2 3.6010e3 -462.1223 ${mean_press}'
+  # []
   [cyclic_porepressure]
     type = ParsedFunction
-    expression = 'if(t>0,(f1*cos(((2*pi)/P1)*t)-f2*sin(((2*pi)/P1)*t))+pp,pp)'
-    symbol_names = 'P1 f1 f2 pp'
-    symbol_values = '44739.2 3.6010e3 -462.1223 ${mean_press}'
+    expression = 'if(t>0, (amp*sin(2*pi*(t/P)))+pp, pp)'
+    symbol_names = 'amp P pp'
+    symbol_values = '${amplitude} ${period} ${mean_press}'
   []
   [neg_cyclic_porepressure]
     type = ParsedFunction
-    expression = '-if(t>0,(f1*cos(((2*pi)/P1)*t)-f2*sin(((2*pi)/P1)*t))+pp,pp)'
-    symbol_names = 'P1 f1 f2 pp'
-    symbol_values = '44739.2 3.6010e3 -462.1223 ${mean_press}'
+    expression = '-if(t>0, (amp*sin(2*pi*(t/P)))+pp, pp)'
+    symbol_names = 'amp P pp'
+    symbol_values = '${amplitude} ${period} ${mean_press}'
   []
 []
 
@@ -86,35 +98,29 @@ mean_press = 3.7316e5
 
   # Hydraulic Boundaries
   [pp]
-  type = FunctionDirichletBC
-  variable = pp
-  function = cyclic_porepressure
-  boundary = front
+    type = FunctionDirichletBC
+    variable = pp
+    function = cyclic_porepressure
+    boundary = top
   []
   # Mechanical Boundaries
   [no_x_disp]
     type = DirichletBC
     variable = disp_x
     value = 0
-    boundary = 'bottom top' # because of 1-element meshing, this fixes u_x=0 everywhere
+    boundary = 'left right' # because of 1-element meshing, this fixes u_x=0 everywhere
   []
   [no_y_disp]
     type = DirichletBC
     variable = disp_y
     value = 0
-    boundary = 'bottom top' # because of 1-element meshing, this fixes u_y=0 everywhere
-  []
-  [no_z_disp_at_bottom]
-    type = DirichletBC
-    variable = disp_z
-    value = 0
-    boundary = back
+    boundary = bottom # because of 1-element meshing, this fixes u_y=0 everywhere
   []
   [total_stress_at_top]
     type = FunctionNeumannBC
-    variable = disp_z
+    variable = disp_y
     function = neg_cyclic_porepressure
-    boundary = front
+    boundary = top
   []
 []
 
@@ -130,9 +136,9 @@ mean_press = 3.7316e5
 
 [PorousFlowBasicTHM]
   coupling_type = HydroMechanical
-  displacements = 'disp_x disp_y disp_z'
+  displacements = 'disp_x disp_y'
   porepressure = pp
-  gravity = '0 0 -9.81'
+  gravity = '0 -9.81 0'
   fp = the_simple_fluid
   use_displaced_mesh = false
 []
@@ -152,7 +158,7 @@ mean_press = 3.7316e5
   []
   [ini_stress]
     type = ComputeEigenstrainFromInitialStress
-    initial_stress = '0 0 0  0 0 0  0 0 ini_stress_zz'
+    initial_stress = '0 0 0  0 ini_stress_yy 0  0 0 0'
     eigenstrain_name = ini_stress
   []
   [porosity]
@@ -187,12 +193,12 @@ mean_press = 3.7316e5
     type = PointValue
     outputs = csv
     point = '0 0 0'
-    variable = disp_z
+    variable = disp_y
   []
   [p100]
     type = PointValue
     outputs = csv
-    point = '0 0 -100'
+    point = '0 -100 0'
     variable = pp
   []
 []
@@ -202,13 +208,12 @@ mean_press = 3.7316e5
     type = LineValueSampler
     variable = pp
     start_point = '0 0 0'
-    end_point = '0 0 -300'
+    end_point = '0 -5000 0'
     num_points = 300
     sort_by = z
     execute_on = 'INITIAL TIMESTEP_END'
   []
 []
- 
 [Preconditioning]
   [andy]
     type = SMP
@@ -232,6 +237,7 @@ mean_press = 3.7316e5
       growth_factor = 1.05
     []
   []
+  dtmax = 3600
   start_time = -${dt} # so postprocessors get recorded correctly at t=0
   end_time = ${end_time}
   nl_abs_tol = 1e-8

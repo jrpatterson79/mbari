@@ -8,12 +8,13 @@ end_time = 864000
 [Mesh]
   type = GeneratedMesh
   dim = 2
-  nx = 1    
+  nx = 1      
   ny = 300
   xmin = 0
   xmax = 30
-  ymin = -300
+  ymin = -500
   ymax = 0
+  bias_y = 0.95
 []
 
 [GlobalParams]
@@ -26,11 +27,13 @@ end_time = 864000
 
 [Variables]
   [disp_x]
+    scaling = 1e-10
   []
   [disp_y]
+    scaling = 1e-10
   []
   [pp]
-    scaling = 1E10
+    # scaling = 1E10
   []
 []
 
@@ -176,7 +179,7 @@ end_time = 864000
     type = LineValueSampler
     variable = pp
     start_point = '0 0 0'
-    end_point = '0 -300 0'
+    end_point = '0 -500 0'
     num_points = 300
     sort_by = y
     execute_on = 'INITIAL TIMESTEP_END'
@@ -192,10 +195,10 @@ end_time = 864000
 
 [Executioner]
   type = Transient
-  line_search = none
+  # line_search = none
   solve_type = Newton
   [TimeSteppers]
-    active = constant
+    active = adaptive
     [constant]
       type = ConstantDT
       dt = ${dt}
