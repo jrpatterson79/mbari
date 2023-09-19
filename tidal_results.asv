@@ -142,22 +142,22 @@ c = k / (mu*M_inv); % Hydraulic diffusivity
 %% MOOSE Results
 file_dir = '/Users/jpatt/moose_projects/mbari/out_files/';
 file_prefix = 'mbari_depth_pp_';
-num_files = 1442;
+num_files = 306;
 
 porepressure = zeros(300,num_files-1);
 for i = 2:num_files
     if i <= 10
         file_name = [file_prefix '000' num2str(i-1) '.csv'];
         data = readtable([file_dir file_name]);
-        porepressure(:,i-1) = data.pp;
-    elseif i > 1000
-        file_name = [file_prefix num2str(i-1) '.csv'];
-        data = readtable([file_dir file_name]);
-        porepressure(:,i-1) = data.pp;
+        porepressure(:,i-1) = data.pp; 
     elseif i > 100
         file_name = [file_prefix '0' num2str(i-1) '.csv'];
         data = readtable([file_dir file_name]);
         porepressure(:,i-1) = data.pp;
+    elseif i > 1000
+        file_name = [file_prefix num2str(i-1) '.csv'];
+        data = readtable([file_dir file_name]);
+        porepressur
     else
         file_name = [file_prefix '00' num2str(i-1) '.csv'];
         data = readtable([file_dir file_name]);

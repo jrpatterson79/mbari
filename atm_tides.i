@@ -11,7 +11,7 @@
   dim = 3
   nx = 1
   ny = 1
-  nz = 10
+  nz = 50
   xmin = 0
   xmax = 10
   ymin = 0

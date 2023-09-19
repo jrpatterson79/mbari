@@ -3,7 +3,7 @@
 # the boundaries are impermeable, except the top boundary
 # only vertical displacement is allowed
 # the atmospheric pressure sets the total stress at the top of the model
-dt = 3600
+dt = 600
 end_time = 864000
 [Mesh]
   type = GeneratedMesh
@@ -12,7 +12,7 @@ end_time = 864000
   ny = 300
   xmin = 0
   xmax = 30
-  ymin = -500
+  ymin = -600
   ymax = 0
   bias_y = 0.95
 []
@@ -50,17 +50,29 @@ end_time = 864000
     type = ParsedFunction
     expression = '(25000 - 0.6*10000)*y' # remember this is effective stress
   []
+  # [cyclic_porepressure]
+  #   type = ParsedFunction
+  #   expression = 'if(t>0,real*cos(((2*pi)/P)*t)-imag*sin(((2*pi)/P)*t),0)'
+  #   symbol_names = 'real imag P'
+  #   symbol_values = '5e3 2.5453e-12 86400'
+  # []
+  # [neg_cyclic_porepressure]
+  #   type = ParsedFunction
+  #   expression = '-if(t>0,real*cos(((2*pi)/P)*t)-imag*sin(((2*pi)/P)*t),0)'
+  #   symbol_names = 'real imag P'
+  #   symbol_values = '5e3 2.5453e-12 86400'  
+  # []
   [cyclic_porepressure]
     type = ParsedFunction
-    expression = 'if(t>0,real*cos(((2*pi)/P)*t)-imag*sin(((2*pi)/P)*t),0)'
-    symbol_names = 'real imag P'
-    symbol_values = '5e3 2.5453e-12 86400'
+    expression = 'if(t>0, amp * sin(2 * pi * (t / P)),0)'
+    symbol_names = 'amp P'
+    symbol_values = '5e3 86400'
   []
   [neg_cyclic_porepressure]
     type = ParsedFunction
-    expression = '-if(t>0,real*cos(((2*pi)/P)*t)-imag*sin(((2*pi)/P)*t),0)'
-    symbol_names = 'real imag P'
-    symbol_values = '5e3 2.5453e-12 86400'  
+    expression = '-if(t>0, amp * sin(2 * pi * (t / P)),0)'
+    symbol_names = 'amp P'
+    symbol_values = '5e3 86400'  
   []
 []
 
@@ -179,7 +191,7 @@ end_time = 864000
     type = LineValueSampler
     variable = pp
     start_point = '0 0 0'
-    end_point = '0 -500 0'
+    end_point = '0 -200 0'
     num_points = 300
     sort_by = y
     execute_on = 'INITIAL TIMESTEP_END'
@@ -198,7 +210,7 @@ end_time = 864000
   # line_search = none
   solve_type = Newton
   [TimeSteppers]
-    active = adaptive
+    active = constant
     [constant]
       type = ConstantDT
       dt = ${dt}
