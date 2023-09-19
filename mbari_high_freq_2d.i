@@ -5,7 +5,7 @@ mean_press = 0#3.7316e5
 
 # Time Parameters
 end_time = 864000
-dt = 3600
+dt = 60
 
 # Rock Parameters
 rho_seds = 1800
@@ -226,7 +226,7 @@ rho_seds = 1800
   # line_search = none
   solve_type = Newton
   [TimeSteppers]
-    active = constant
+    active = adaptive
     [constant]
       type = ConstantDT
       dt = ${dt}
