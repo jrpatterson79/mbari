@@ -1,5 +1,5 @@
 end_time = 864000
-dt = 1800
+dt = 60
 rho_seds = 1800
 mean_press = 3.7316e5
 
@@ -7,11 +7,12 @@ mean_press = 3.7316e5
   type = GeneratedMesh
   dim = 2
   nx = 1
-  ny = 1000
+  ny = 300
   xmin = 0
   xmax = 10
-  ymin = -500
+  ymin = -1000
   ymax = 0
+  bias_y = 0.95
 []
 
 [GlobalParams]
@@ -52,8 +53,8 @@ mean_press = 3.7316e5
     # remember this is effective stress
     type = ParsedFunction
     expression = '(rho_s*g - rho_f*g*0.6) * y' 
-    symbol_names = 'rho_s g rho_f'
-    symbol_values = '${rho_seds} 9.81 1026'
+    symbol_names = 'rho_s rho_f g'
+    symbol_values = '${rho_seds} 1026 9.81'
   []
   [cyclic_porepressure]
     type = ParsedFunction
@@ -182,7 +183,7 @@ mean_press = 3.7316e5
     type = LineValueSampler
     variable = pp
     start_point = '0 0 0'
-    end_point = '0 -500 0'
+    end_point = '0 -1000 0'
     num_points = 300
     sort_by = y
     execute_on = 'INITIAL TIMESTEP_END'
@@ -201,7 +202,7 @@ mean_press = 3.7316e5
   # line_search = none
   solve_type = Newton
   [TimeSteppers]
-    active = constant
+    active = adaptive
     [constant]
       type = ConstantDT
       dt = ${dt}
@@ -212,6 +213,7 @@ mean_press = 3.7316e5
       growth_factor = 1.05
     []
   []
+  dtmax = 3600
   start_time = -${dt} # so postprocessors get recorded correctly at t=0
   end_time = ${end_time}
   nl_abs_tol = 1e-8
