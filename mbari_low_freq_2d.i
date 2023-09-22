@@ -1,18 +1,20 @@
 end_time = 864000
 dt = 60
+period = 91048.6
+amplitude = 3548.6
+mean_press = 3.7316e5 
 rho_seds = 1800
-mean_press = 3.7316e5
 
 [Mesh]
   type = GeneratedMesh
   dim = 2
   nx = 1
-  ny = 300
+  ny = 1700
   xmin = 0
   xmax = 10
-  ymin = -1000
+  ymin = -8500
   ymax = 0
-  bias_y = 0.95
+  # bias_y = 0.95
 []
 
 [GlobalParams]
@@ -58,16 +60,28 @@ mean_press = 3.7316e5
   []
   [cyclic_porepressure]
     type = ParsedFunction
-    expression = 'if(t>0,(f1*cos(((2*pi)/P)*t)-f2*sin(((2*pi)/P)*t))+pp,pp)'
-    symbol_names = 'P f1 f2 pp'
-    symbol_values = '91048.6 -1.3816e3 -3.2686e3 ${mean_press}'
+    expression = 'if(t>0, (amp*sin(2*pi*(t/P)))+pp, pp)'
+    symbol_names = 'amp P pp'
+    symbol_values = '${amplitude} ${period} ${mean_press}'
   []
   [neg_cyclic_porepressure]
     type = ParsedFunction
-    expression = '-if(t>0,(f1*cos(((2*pi)/P)*t)-f2*sin(((2*pi)/P)*t))+pp,pp)'
-    symbol_names = 'P f1 f2 pp'
-    symbol_values = '91048.6 -1.3816e3 -3.2686e3 ${mean_press}'
+    expression = '-if(t>0, (amp*sin(2*pi*(t/P)))+pp, pp)'
+    symbol_names = 'amp P pp'
+    symbol_values = '${amplitude} ${period} ${mean_press}'
   []
+  # [cyclic_porepressure]
+  #   type = ParsedFunction
+  #   expression = 'if(t>0,(f1*cos(((2*pi)/P)*t)-f2*sin(((2*pi)/P)*t))+pp,pp)'
+  #   symbol_names = 'P f1 f2 pp'
+  #   symbol_values = '91048.6 -1.3816e3 -3.2686e3 ${mean_press}'
+  # []
+  # [neg_cyclic_porepressure]
+  #   type = ParsedFunction
+  #   expression = '-if(t>0,(f1*cos(((2*pi)/P)*t)-f2*sin(((2*pi)/P)*t))+pp,pp)'
+  #   symbol_names = 'P f1 f2 pp'
+  #   symbol_values = '91048.6 -1.3816e3 -3.2686e3 ${mean_press}'
+  # []
 []
 
 [BCs]
@@ -183,7 +197,7 @@ mean_press = 3.7316e5
     type = LineValueSampler
     variable = pp
     start_point = '0 0 0'
-    end_point = '0 -1000 0'
+    end_point = '0 -8000 0'
     num_points = 300
     sort_by = y
     execute_on = 'INITIAL TIMESTEP_END'
