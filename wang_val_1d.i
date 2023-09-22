@@ -3,13 +3,13 @@
 # the boundaries are impermeable, except the top boundary
 # only vertical displacement is allowed
 # the atmospheric pressure sets the total stress at the top of the model
-dt = 1800
+dt = 60
 end_time = 864000
 [Mesh]
   type = GeneratedMesh
   dim = 1
   nx = 600    
-  xmin = -300
+  xmin = -200
   xmax = 0
 []
 
@@ -44,15 +44,15 @@ end_time = 864000
   []
   [cyclic_porepressure]
     type = ParsedFunction
-    expression = 'if(t>0,real*cos(((2*pi)/P)*t)-imag*sin(((2*pi)/P)*t),0)'
-    symbol_names = 'real imag P'
-    symbol_values = '5e3 2.5453e-12 86400'
+    expression = 'if(t>0, amp * sin(2 * pi * (t / P)),0)'
+    symbol_names = 'amp P'
+    symbol_values = '5e3 86400'
   []
   [neg_cyclic_porepressure]
     type = ParsedFunction
-    expression = '-if(t>0,real*cos(((2*pi)/P)*t)-imag*sin(((2*pi)/P)*t),0)'
-    symbol_names = 'real imag P'
-    symbol_values = '5e3 2.5453e-12 86400'  
+    expression = '-if(t>0, amp * sin(2 * pi * (t / P)),0)'
+    symbol_names = 'amp P'
+    symbol_values = '5e3 86400'  
   []
 []
 
@@ -159,7 +159,7 @@ end_time = 864000
     type = LineValueSampler
     variable = pp
     start_point = '0 0 0'
-    end_point = '-300 0 0'
+    end_point = '-200 0 0'
     num_points = 300
     sort_by = x
     execute_on = 'INITIAL TIMESTEP_END'
@@ -177,7 +177,7 @@ end_time = 864000
   type = Transient
   solve_type = Newton
   [TimeSteppers]
-    active = constant
+    active = adaptive
     [constant]
       type = ConstantDT
       dt = ${dt}

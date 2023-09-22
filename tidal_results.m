@@ -142,7 +142,7 @@ c = k / (mu*M_inv); % Hydraulic diffusivity
 %% MOOSE Results
 file_dir = '/Users/jpatt/moose_projects/mbari/out_files/';
 file_prefix = 'mbari_depth_pp_';
-num_files = 1442;
+num_files = 306;
 
 porepressure = zeros(300,num_files-1);
 for i = 2:num_files
@@ -165,7 +165,7 @@ for i = 2:num_files
     end
 end
 res = readtable([file_dir 'mbari.csv']);
-time = res.time(2:end);%[0:3600:864000]';
+time = res.time(2:end);
 
 % Calculate Amplitudes
 P = 86400; % Atmospheric forcing period
@@ -178,8 +178,8 @@ atm_tide = 5000 * sin(2*pi*(time./P)); % Atmospheric forcing signal
 amp_1 = abs(atm_tide_phasor);
 atm_tide = real(atm_tide_phasor .* exp(1j * omega .* time));
 
-% z = abs(data.x);
-z = abs(data.y);
+z = abs(data.x);
+% z = abs(data.y);
 % z = abs(data.z);
 dim_depth = sqrt(1/arg_1).*z;
 trim = find(time >= 2*P);
