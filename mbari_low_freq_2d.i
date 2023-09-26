@@ -9,12 +9,12 @@ rho_seds = 1800
   type = GeneratedMesh
   dim = 2
   nx = 1
-  ny = 1700
+  ny = 350#344#3400
   xmin = 0
   xmax = 10
-  ymin = -8500
+  ymin = -3500#-8600#-8500
   ymax = 0
-  # bias_y = 0.95
+  bias_y = 0.95
 []
 
 [GlobalParams]
@@ -197,8 +197,8 @@ rho_seds = 1800
     type = LineValueSampler
     variable = pp
     start_point = '0 0 0'
-    end_point = '0 -8000 0'
-    num_points = 300
+    end_point = '0 -1000 0'
+    num_points = 1000
     sort_by = y
     execute_on = 'INITIAL TIMESTEP_END'
   []

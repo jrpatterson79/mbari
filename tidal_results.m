@@ -9,7 +9,7 @@ num_files = 306;
 
 % Vector postprocessor results to generate porepressure matrix (num_z x
 % num_t)
-porepressure = zeros(300,num_files-1);
+porepressure = zeros(1000,num_files-1);
 for i = 2:num_files
     if i <= 10
         file_name = [file_prefix '000' num2str(i-1) '.csv'];
@@ -32,7 +32,7 @@ end
 
 res = readtable([file_dir 'mbari.csv']); 
 time = res.time(2:end);
-trim = find(time >= 5*90000); % Finding steady-periodic portion of signal
+trim = find(time >= 2*91048.6); % Finding steady-periodic portion of signal
 % z = abs(data.x);
 z = abs(data.y); % Depth vector
 % z = abs(data.z);
@@ -79,7 +79,7 @@ arg_2 = (2*c) / om_2;
 dis_dep_2 = sqrt(arg_2);
 
 for j = 1 : numel(z)
-    [~, moose_phasor(j,:)] = periodic_LS_fit(time(trim), porepressure(j,trim)'-mean(porepressure(j,trim)), P2);
+    [~, moose_phasor(j,:)] = periodic_LS_fit(time(trim), detrend(porepressure(j,trim),'linear')', P2);
 end
 
 dim_depth = sqrt(1/arg_2).*z; % Dimensionless depth
@@ -95,7 +95,7 @@ plot(abs(moose_phasor), z, '.', 'Color', [0.7592 0 0],...
 hold on
 plot(abs(phasor_2), z, 'LineWidth', 2, 'Color', [0 0.4470 0.7410])
 % ax.XTick = [0:0.2:1];
-% xlim([0 1])
+xlim([2000 4000])
 ax.YDir = 'reverse';
 xlabel('Normalized Amplitude')
 ylabel('Depth (m)')
@@ -103,7 +103,7 @@ ax.FontSize = 30;
 
 subplot(1,2,2)
 ax = gca;
-plot(angle(moose_phasor), z, '.', 'Color', [0.7592 0 0],...
+plot(angle(moose_phasor)+pi/2, z, '.', 'Color', [0.7592 0 0],...
     'MarkerSize', 12)
 hold on
 plot(angle(phasor_2), z, 'LineWidth', 2, 'Color', [0 0.4470 0.7410])
