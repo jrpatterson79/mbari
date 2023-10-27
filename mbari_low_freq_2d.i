@@ -1,27 +1,27 @@
 end_time = 864000
-dt = 60
+dt = 1800
 period = 91048.6
 amplitude = 3548.6
 mean_press = 3.7316e5 
-rho_seds = 1800
+rho_seds = 2360 #1800
 
 [Mesh]
   type = GeneratedMesh
   dim = 2
   nx = 1
-  ny = 350#344#3400
+  ny = 60#344#3400
   xmin = 0
-  xmax = 10
-  ymin = -3500#-8600#-8500
+  xmax = 20
+  ymin = -600#-8600#-8500
   ymax = 0
-  bias_y = 0.95
+  # bias_y = 0.95
 []
 
 [GlobalParams]
   displacements = 'disp_x disp_y'
   PorousFlowDictator = dictator
   block = 0
-  biot_coefficient = 0.6
+  biot_coefficient = 0.9
   multiply_by_density = false
 []
 
@@ -54,7 +54,7 @@ rho_seds = 1800
   [ini_stress_yy]
     # remember this is effective stress
     type = ParsedFunction
-    expression = '(rho_s*g - rho_f*g*0.6) * y' 
+    expression = '(rho_s*g - rho_f*g*0.9) * y' 
     symbol_names = 'rho_s rho_f g'
     symbol_values = '${rho_seds} 1026 9.81'
   []
@@ -109,7 +109,7 @@ rho_seds = 1800
     type = DirichletBC
     variable = disp_y
     value = 0
-    boundary = bottom # because of 1-element meshing, this fixes u_y=0 everywhere
+    boundary = bottom
   [] 
 []
 
@@ -135,8 +135,8 @@ rho_seds = 1800
 [Materials]
   [elasticity_tensor]
     type = ComputeIsotropicElasticityTensor
-    shear_modulus = 6.5e8 # drained bulk modulus
-    bulk_modulus = 4.4e8
+    bulk_modulus = 3.4e8 # drained bulk modulus
+    shear_modulus = 2.2e8 # drained shear modulus
   []
   [strain]
     type = ComputeSmallStrain
@@ -152,17 +152,17 @@ rho_seds = 1800
   []
   [porosity]
     type = PorousFlowPorosityConst # only the initial value of this is ever used
-    porosity = 0.5
+    porosity = 0.25
   []
   [biot_modulus]
     type = PorousFlowConstantBiotModulus
-    biot_coefficient = 0.6
+    biot_coefficient = 0.9
     fluid_bulk_modulus = 2E9
   []
   [permeability]
     type = PorousFlowPermeabilityConst
-    permeability = '1.8e-10 0 0   0 1.8e-10 0   0 0 1.8e-10'
-    # permeability = '3.75e-15 0 0   0 3.75e-15 0   0 0 3.75e-15'
+    # permeability = '1.8e-10 0 0   0 1.8e-10 0   0 0 1.8e-10'
+    permeability = '4e-14 0 0   0 4e-14 0   0 0 4e-14'
   []
   [density]
     type = GenericConstantMaterial
@@ -184,12 +184,6 @@ rho_seds = 1800
     point = '0 0 0'
     variable = disp_y
   []
-  [p100]
-    type = PointValue
-    outputs = csv
-    point = '0 -100 0'
-    variable = pp
-  []
 []
 
 [VectorPostprocessors]
@@ -197,8 +191,8 @@ rho_seds = 1800
     type = LineValueSampler
     variable = pp
     start_point = '0 0 0'
-    end_point = '0 -1000 0'
-    num_points = 1000
+    end_point = '0 -100 0'
+    num_points = 100
     sort_by = y
     execute_on = 'INITIAL TIMESTEP_END'
   []
